@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct Home: View {
-    @State private var showPhotoPicker: Bool = false
-    @State private var selectedMediaForUpload: MediaPicker.SelectedMedia?
+    @State private var showMediaPicker: Bool = false
+    @ObservedObject private var media: MediaVM = .shared
     
     var body: some View {
         AppNavigationView {
@@ -10,11 +10,17 @@ struct Home: View {
                 Color.white.ignoresSafeArea()
                 
                 // Scrollview listing CardViews
-                
                 ScrollView {
                     LazyVStack {
                         ForEach(0..<10) { _ in
-                            CardView(mediaItem: MediaItem(name: "Name", type: "Image", imageData: nil, isFavorite: false))
+                            CardView(
+                                mediaItem: MediaItem(
+                                    name: "Name",
+                                    type: "Image",
+                                    imageData: nil,
+                                    isFavorite: false
+                                )
+                            )
                         }
                     }
                 }
@@ -22,11 +28,20 @@ struct Home: View {
             }
             .navbarWithTitleAndAction(action: .some(title: "Upload", action: {
                 print("Will upload shortly...")
-                self.showPhotoPicker = true
+                self.showMediaPicker = true
             }))
-            .sheet(isPresented: $showPhotoPicker) {
-                MediaPicker(selectedMedia: $selectedMediaForUpload)
+        }
+        .sheet(isPresented: $showMediaPicker) {
+            MediaPicker(selectedMedia: $media.selectedMediaForUpload)
+        }
+        .onChange(of: media.selectedMediaForUpload) { selectedMedia in
+            guard let selectedMedia else {
+                print("No media selected")
+                return
             }
+            
+            print("Uploading \(selectedMedia)...")
+            self.media.uploadMedia()
         }
     }
 }

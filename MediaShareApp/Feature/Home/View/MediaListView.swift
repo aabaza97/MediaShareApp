@@ -13,8 +13,9 @@ struct MediaListView: View {
                     CardView(mediaItem: mediaItem)
                         .onAppear {
                             // load more media before reaching the end with a buffer of 2
-                            let buffer = media.userMedia.count - 2
-                            if mediaItem == media.userMedia[buffer] {
+                            let buffer = 2
+                            if media.userMedia.count > buffer &&
+                                mediaItem == media.userMedia[media.userMedia.count - buffer] {
                                 media.page += 1
                                 media.getMyUploadedMedia(in: media.page)
                             }

@@ -63,42 +63,63 @@ class MediaVM: ObservableObject {
     }
     
     /// Likes the media
-    func likeMedia(_ media: MediaItem) {
-//        MediaManager.shared.likeMedia(media.id) { success, failure in
-//            guard let data = success?.data, failure == nil else {
-//                print("likeMedia failed.\nFailure: \(String(describing: failure))")
-//                return
-//            }
-//            
-//            print("likeMedia success: \(data)")
+    func likeMedia(_ media: MediaItem, completion: @escaping (MediaItem?) -> Void) {
+        LikeManager.shared.like(media.id) { success, failure in
+            guard let data = success?.data, failure == nil else {
+                print("likeMedia failed.\nFailure: \(String(describing: failure))")
+                completion(nil)
+                return
+            }
+            
+            var likedMedia = media
+            likedMedia.isLiked = true
+            
+            if let index = self.userMedia.firstIndex(where: {$0.id == media.id}) {
+                DispatchQueue.main.async {
+                    self.userMedia[index] = likedMedia
+                    completion(likedMedia)
+                }
+            }
+            print("likeMedia success: \(data)")
         }
+    }
     
     
     /// Unlike the media
-    func unlikeMedia(_ media: MediaItem) {
-//        MediaManager.shared.unlikeMedia(media.id) { success, failure in
-//            guard let data = success?.data, failure == nil else {
-//                print("unlikeMedia failed.\nFailure: \(String(describing: failure))")
-//                return
-//            }
-//            
-//            print("unlikeMedia success: \(data)")
-//        }
-    }
-
-    /// Deletes the media
-        func deleteMedia(_ media: MediaItem) {
-            MediaManager.shared.deleteMedia(media.id) { success, failure in
-                guard let data = success?.data, failure == nil else {
-                    print("deleteMedia failed.\nFailure: \(String(describing: failure))")
-                    return
-                }
-                
-                DispatchQueue.main.async {
-                    self.userMedia.removeAll { $0.id == media.id }
-                }
-                
-                print("deleteMedia success: \(data)")
+    func unlikeMedia(_ media: MediaItem, completion: @escaping (MediaItem?) -> Void) {
+        LikeManager.shared.unlike(media.id) { success, failure in
+            guard let success, failure == nil else {
+                print("unLikeMedia failed.\nFailure: \(String(describing: failure))")
+                completion(nil)
+                return
             }
+            
+            var unLikedMedia = media
+            unLikedMedia.isLiked = false
+            
+            if let index = self.userMedia.firstIndex(where: {$0.id == media.id}) {
+                DispatchQueue.main.async {
+                    self.userMedia[index] = unLikedMedia
+                    completion(unLikedMedia)
+                }
+            }
+            print("likeMedia success: \(success)")
         }
+    }
+    
+    /// Deletes the media
+    func deleteMedia(_ media: MediaItem) {
+        MediaManager.shared.deleteMedia(media.id) { success, failure in
+            guard let data = success?.data, failure == nil else {
+                print("deleteMedia failed.\nFailure: \(String(describing: failure))")
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.userMedia.removeAll { $0.id == media.id }
+            }
+            
+            print("deleteMedia success: \(data)")
+        }
+    }
 }

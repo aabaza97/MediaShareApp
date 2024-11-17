@@ -25,17 +25,20 @@ struct CardView: View {
                 
                 Spacer()
                 
+                // Like Button
                 Image(mediaItem.isLiked ? .favHeartWhiteFill : .favHeartWhite).foregroundStyle(.black)
                     .padding([.trailing])
                     .onTapGesture {
-                        let completion: (MediaItem) -> Void = { self.mediaItem = $0 }
-                        //                            DispatchQueue.main.async {
-                        //                                self.clothingItem.isFavorite ?
-                        //                                self.clothingItem.unFavor(completion) :
-                        //                                self.clothingItem.favor(completion)
-                        //                            }
+                        self.toggleLike(for: mediaItem)
                     }
-                Image(.shareArrowWhite ).foregroundStyle(.black)
+                
+                // Share Button
+                ShareLink(item: URL(string: mediaItem.downloadURL)!) {
+                    Image(.shareArrowWhite)
+                        .foregroundStyle(.black)
+                }
+                
+            
             }
             .padding([.top], -5)
         }
@@ -46,6 +49,26 @@ struct CardView: View {
             let completion: (MediaItem) -> Void = { self.mediaItem = $0 }
             self.mediaItem.loadData(completion)
         }
+    }
+    
+    // MARK: - Functions
+    private func toggleLike(for mediaItem: MediaItem) {
+        let completion: (MediaItem?) -> Void = {
+            guard let media = $0 else { return }
+            self.mediaItem = media
+        }
+        
+        DispatchQueue.main.async {
+            self.mediaItem.isLiked ?
+            MediaVM.shared.unlikeMedia(mediaItem, completion: completion) :
+            MediaVM.shared.likeMedia(mediaItem, completion: completion)
+        }
+
+    }
+    
+    func share(_ media: MediaItem) {
+        // Share the media
+        
     }
 }
 

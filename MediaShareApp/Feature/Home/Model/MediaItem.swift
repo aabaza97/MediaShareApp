@@ -5,7 +5,7 @@ struct MediaItem: Identifiable, Equatable {
     let name: String
     let type: String
     let downloadURL: String
-    let isLiked: Bool
+    var isLiked: Bool
     
     private(set) var data: Data? 
     

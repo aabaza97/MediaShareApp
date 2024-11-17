@@ -2,6 +2,7 @@ import SwiftUI
 
 struct Home: View {
     @State private var showMediaPicker: Bool = false
+    
     @ObservedObject private var media: MediaVM = .shared
     
     var body: some View {
@@ -11,18 +12,10 @@ struct Home: View {
                 
                 // Scrollview listing CardViews
                 ScrollView {
-                    LazyVStack {
-                        ForEach(0..<10) { _ in
-                            CardView(
-                                mediaItem: MediaItem(
-                                    name: "Name",
-                                    type: "Image",
-                                    imageData: nil,
-                                    isFavorite: false
-                                )
-                            )
-                        }
-                    }
+                    MediaListView(media: media)
+                }
+                .refreshable {
+                    self.media.getMyUploadedMedia()
                 }
                 
             }
@@ -43,7 +36,12 @@ struct Home: View {
             print("Uploading \(selectedMedia)...")
             self.media.uploadMedia()
         }
+        .onAppear {
+            print("Home did appear")
+            self.media.getMyUploadedMedia()
+        }
     }
+    
 }
 
 #Preview {

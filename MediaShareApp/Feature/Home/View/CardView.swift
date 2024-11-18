@@ -1,22 +1,13 @@
 import SwiftUI
 
-
 struct CardView: View {
     @State var mediaItem: MediaItem
     @State var navigationActivator: Bool = false
     
     var body: some View {
         VStack {
-            let itemWidth = UIScreen.main.bounds.width - 20.0
-            let image = UIImage(data: mediaItem.data ?? .SubSequence()) ?? UIImage()
-            
-            Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: itemWidth, height: itemWidth * 5 / 4)
-                .clipped()
-                .background(Color.gray
-                )
+           
+            MediaDisplayView(mediaItem: $mediaItem)
             
             FootnoteText(text: mediaItem.type.capitalized , color: .black)
             

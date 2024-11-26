@@ -9,7 +9,7 @@ final class MediaManager: NetworkManager {
     typealias deleteCompletion = ((APISuccessResponse<DeleteMediaResponse>?, APIFailureResponse?) -> Void)
     
     //MARK: - Properties
-    var router: any NetworkRouter { Router<MediaEndpoints>()}
+    var router: any NetworkRouter { Router<MediaEndpoints>(authProvider: AuthManager.shared)}
     
     //MARK: - Inits
     static let shared = MediaManager()
@@ -87,9 +87,6 @@ final class MediaManager: NetworkManager {
             })
         }
     }
-    
-    /// Likes the media
-    
     
 }
 

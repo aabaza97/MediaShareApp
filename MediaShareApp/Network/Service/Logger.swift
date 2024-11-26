@@ -29,5 +29,24 @@ class NetworkLogger {
         print(logOutput)
     }
     
-    static func log(response: URLResponse) {}
+    static func log(response: URLResponse) {
+        print("\n - - - - - - - - - - INCOMING - - - - - - - - - - \n")
+        defer { print("\n - - - - - - - - - -  END - - - - - - - - - - \n") }
+        
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+        let url = response.url?.absoluteString ?? ""
+        let mimeType = response.mimeType ?? ""
+        let headerFields = (response as? HTTPURLResponse)?.allHeaderFields ?? [:]
+        
+        var logOutput = """
+                        \(url) \n\n
+                        HTTP/1.1 \(statusCode) \n
+                        Content-Type: \(mimeType) \n
+                        """
+        for (key,value) in headerFields {
+            logOutput += "\(key): \(value) \n"
+        }
+        
+        print(logOutput)
+    }
 }

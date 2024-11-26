@@ -6,7 +6,7 @@ final class LikeManager: NetworkManager {
     typealias unlikeCompletion = ((APISuccessResponse<EmptyResponse>?, APIFailureResponse?) -> Void)
     
     // MARK: - Properties
-    var router: any NetworkRouter { Router<LikesEndpoints>() }
+    var router: any NetworkRouter { Router<LikesEndpoints>(authProvider: AuthManager.shared) }
     
     
     // MARK: - Inits

@@ -20,7 +20,10 @@ class AuthVM: ObservableObject {
         }
         
         let body = LoginRequestBody(email: email, password: password)
-        AuthManager.shared.login(with: body) { success, failure in
+        
+        
+        
+        AuthManager.shared.login(with: body) { (success: APISuccessResponse<LoginResponse>?, failure) in
             guard let data = success?.data, failure == nil else {
                 print("login failed")
                 return
@@ -41,7 +44,7 @@ class AuthVM: ObservableObject {
         }
         
         let body = SendVerificationRequestBody(email: email, password: password, first_name: fname, last_name: lname)
-        AuthManager.shared.sendEmailVerification(with: body) { success, failure in
+        AuthManager.shared.sendEmailVerification(with: body) { (success: APISuccessResponse<SendEmailVerificationResponse>?, failure) in
             guard success != nil, failure == nil else {
                 print("verify email failed")
                 return
@@ -60,7 +63,7 @@ class AuthVM: ObservableObject {
         }
         
         let body = RegisterRequestBody(email: email, otp: otp.joined())
-        AuthManager.shared.register(with: body) { success, failure in
+        AuthManager.shared.register(with: body) { (success: APISuccessResponse<RegisterResponse>?, failure) in
             guard let data = success?.data, failure == nil else {
                 print("registration failed")
                 return
@@ -70,6 +73,18 @@ class AuthVM: ObservableObject {
             DispatchQueue.main.async {
                 AppUser.shared.setData(from: data)
                 self.isLoggedIn = true
+            }
+        }
+    }
+    
+    func logout() {
+        AuthManager.shared.logout { (success: APISuccessResponse<LogoutResponse>?, failure) in
+            guard success != nil, failure == nil else {
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.isLoggedIn = false
             }
         }
     }

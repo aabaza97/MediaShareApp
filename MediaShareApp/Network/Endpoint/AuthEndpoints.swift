@@ -1,10 +1,10 @@
 import Foundation
 
 enum AuthEndpoints {
-    case sendEmailVerification(body: SendVerificationRequestBody)
-    case register(body: RegisterRequestBody)
+    case sendEmailVerification(body: any Codable)
+    case register(body: any Codable)
     case logout(accessToken: String)
-    case login(body: LoginRequestBody)
+    case login(body: any Codable)
     case forgotPassword
     case verifyOTPToResetPassword
     case resetPassword
@@ -72,17 +72,11 @@ extension AuthEndpoints: Endpoint {
     }
 
     var header: HTTPHeaders? {
-        var defaults = [
-            "Content-Type": "application/json",
-            "Accepts-Language": "en"
-        ]
+        var defaults = self.defaultHeaders
         
         switch self {
-        case .logout(let accessToken):
-            defaults["Authorization"] = "Bearer \(accessToken)"
-            return defaults
-        case .refreshAccessToken(let refreshToken):
-            defaults["Authorization"] = "Bearer \(refreshToken)"
+        case .logout(let token), .refreshAccessToken(let token):
+            defaults["Authorization"] = "Bearer \(token)"
             return defaults
         default:
             return defaults

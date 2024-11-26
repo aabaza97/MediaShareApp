@@ -39,12 +39,12 @@ extension MediaEndpoints: Endpoint {
     }
     
     var header: HTTPHeaders? {
-        var defaults = [
-            "Content-Type": "application/json",
-            "Accepts-Language": "en",
-        ]
+        var defaults = self.defaultHeaders
         switch self{
-        case .uploadImage(let token, _), .uploadMovie(let token, _), .getMedia(let token, _), .delete(let token, _):
+        case .uploadImage(let token, _),
+                .uploadMovie(let token, _),
+                .getMedia(let token, _),
+                .delete(let token, _):
             defaults["Authorization"] = "Bearer \(token)"
         }
         return defaults
@@ -57,7 +57,5 @@ extension MediaEndpoints: Endpoint {
     var authProtected: Bool {
         true
     }
-    
-  
     
 }

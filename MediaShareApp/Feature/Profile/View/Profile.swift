@@ -77,7 +77,7 @@ struct Profile: View {
                 
                 HStack {
                     Button(action: {
-                        self.logout()
+                        AuthVM.shared.logout()
                     }) {
                         Text("Log Out").font(.subheadline)
                     }
@@ -97,18 +97,6 @@ struct Profile: View {
                 
             }
             .navbarWithTitleAndAction(action: .none(title: ""))
-        }
-    }
-    
-    private func logout() -> Void {
-        AuthManager.shared.logout { success, failure in
-            guard success != nil, failure == nil else {
-                return
-            }
-            
-            DispatchQueue.main.async {
-                isLoggedIn = false
-            }
         }
     }
 }

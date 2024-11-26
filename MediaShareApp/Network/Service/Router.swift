@@ -4,39 +4,103 @@ public typealias NetworkRouterCompletion = (_ data: Data?,_ response: URLRespons
 
 protocol NetworkRouter: AnyObject {
     associatedtype EndPoint: Endpoint
-    func request(_ route: EndPoint, completion: @escaping NetworkRouterCompletion)
+    func route(_ route: EndPoint, completion: @escaping NetworkRouterCompletion)
     func cancel()
 }
 
+
 class Router<EndPoint: Endpoint>: NetworkRouter {
+    // MARK: - Properties
+    private let authProvider: AuthProvider?
+    private let session: URLSession
     private var task: URLSessionTask?
     
-    func request(_ route: EndPoint, completion: @escaping NetworkRouterCompletion) {
-        let session = URLSession.shared
-        session.configuration.timeoutIntervalForRequest = 5 * 60
+    
+    // MARK: - Inits
+    init(authProvider: AuthProvider, session: URLSession = .shared) {
+        self.authProvider = authProvider
+        self.session = session
+    }
+    
+    
+    // MARK: - Functions
+    func route(_ route: EndPoint, completion: @escaping NetworkRouterCompletion) {
+        if route.authProtected {
+            // If the route is protected, make authenticated request
+            self.performAuthenticatedRequest(route, completion: completion)
+            return
+        }
+        
+        self.performRequest(route, completion: completion)
+    }
+    
+    /// Performs a network request with authentication
+    private
+    func performAuthenticatedRequest(_ route: EndPoint, completion: @escaping NetworkRouterCompletion) {
+        self.authProvider?.getAccessToken() { [weak self] token, error in
+            guard let token, error == nil else {
+                completion(nil, nil, NetworkError.authenticationError)
+                return
+            }
+            
+            self?.performRequest(route, with: token, completion: completion)
+        }
+    }
+    
+    
+    /// Performs a network request
+    private
+    func performRequest (_ route: EndPoint, with token: String? = nil, completion: @escaping NetworkRouterCompletion) {
         do {
-            var request = try self.buildRequest(from: route, with: APIManager.shared.baseURL)
-            request.timeoutInterval = 5 * 60
-            NetworkLogger.log(request: request)
-            task = session.dataTask(with: request, completionHandler: { data, response, error in
+            let request = try self.buildRequest(from: route, authenticatedWith: token)
+            
+             // Log the request
+             NetworkLogger.log(request: request)
+            
+            // create a session task
+            self.task = self.createSessionTask(for: request, on: route) { data, response, error in
+                NetworkLogger.log(response: response as? HTTPURLResponse ?? .init())
                 completion(data, response, error)
-            })
-        }catch {
+            }
+            self.task?.resume()
+           
+        } catch {
             completion(nil, nil, error)
         }
-        self.task?.resume()
     }
     
-    func cancel() {
-        self.task?.cancel()
+    /// Creates a session task for the request
+    private
+    func createSessionTask(for request: URLRequest, on route: EndPoint,completion: @escaping NetworkRouterCompletion) -> URLSessionTask {
+        switch route.task {
+        case .multipart: return self.session.uploadTask(with: request, from: request.httpBody ?? .init(), completionHandler: completion)
+        default : return self.session.dataTask(with: request, completionHandler: completion)
+        }
     }
     
+    /// Builds the request from the route and token
+    private
+    func buildRequest(from route: EndPoint, authenticatedWith token: String?) throws -> URLRequest {
+        var request = try self.buildRequest(from: route, with: APIManager.shared.baseURL)
+        
+        // If the route is protected, add the token to the header
+        if let token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        return request
+    }
     
-    private func buildRequest(from route: EndPoint, with baseURL: URL) throws -> URLRequest {
+    /// Builds the request from the route and base URL
+    private
+    func buildRequest(from route: EndPoint, with baseURL: URL) throws -> URLRequest {
+        // Build the request URL from the route
         let requestURL = baseURL.appendingPathComponent(route.version.rawValue).appendingPathComponent(route.path)
-        var request = URLRequest(url: requestURL ,
-                                 cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
-                                 timeoutInterval: 10.0)
+        var request = URLRequest(
+            url: requestURL ,
+            cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
+            timeoutInterval: 10.0
+        )
         
         // Append all endpoint headers
         route.header?.forEach({ key, value in
@@ -66,6 +130,7 @@ class Router<EndPoint: Endpoint>: NetworkRouter {
                     request.url = urlComponents.url
                 }
                 
+                // Set the content type to json if not already set
                 if request.value(forHTTPHeaderField: "Content-Type") == nil {
                     request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
                 }
@@ -102,6 +167,12 @@ class Router<EndPoint: Endpoint>: NetworkRouter {
         request.setValue("true", forHTTPHeaderField: "ngrok-skip-browser-warning")
         request.httpMethod = route.httpMethod.rawValue
         return request
+    }
+    
+    
+    /// Cancels the current task
+    func cancel() {
+        self.task?.cancel()
     }
     
 }

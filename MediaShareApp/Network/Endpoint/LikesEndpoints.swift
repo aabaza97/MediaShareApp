@@ -1,8 +1,8 @@
 import Foundation
 
 enum LikesEndpoints {
-    case likeMedia(token: String, id: Int)
-    case unlikeMedia(token: String, id: Int)
+    case likeMedia(id: Int)
+    case unlikeMedia(id: Int)
 }
 
 extension LikesEndpoints: Endpoint {
@@ -11,7 +11,7 @@ extension LikesEndpoints: Endpoint {
     }
     
     var path: String {
-       return "likes"
+        return "likes"
     }
     
     var httpMethod: HTTPMethod {
@@ -25,21 +25,13 @@ extension LikesEndpoints: Endpoint {
     
     var task: HTTPTask {
         switch self {
-        case .likeMedia(_, let id), .unlikeMedia(_, let id):
+        case .likeMedia( let id), .unlikeMedia( let id):
             return .withParams(urlParams: ["id": id], bodyParams: nil)
         }
     }
     
     var header: HTTPHeaders? {
-        var defaults = [
-            "Content-Type": "application/json",
-            "Accepts-Language": "en",
-        ]
-        switch self{
-        case .likeMedia(let token, _), .unlikeMedia(let token, _):
-            defaults["Authorization"] = "Bearer \(token)"
-        }
-        return defaults
+        return self.defaultHeaders
     }
     
     var params: Parameters? {
@@ -50,5 +42,5 @@ extension LikesEndpoints: Endpoint {
         true
     }
     
-   
+    
 }

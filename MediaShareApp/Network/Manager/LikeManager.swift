@@ -18,46 +18,30 @@ final class LikeManager: NetworkManager {
     // MARK: - Functions
     /// Likes the media
     func like(_ mediaId: Int, completion: @escaping likeCompletion) -> Void {
-        AuthManager.shared.getAccessToken { [weak self] token, failure in
-            guard let token, failure == nil else {
-                print("Failed to acquire token.\nFailure:\(String(describing: failure))")
+        let endPoint: LikesEndpoints = .likeMedia(id: mediaId)
+        
+        self.performRequest(to: endPoint, completion: { (success: APISuccessResponse<LikeResponse>?, failure: APIFailureResponse?) in
+            guard let success, failure == nil else {
                 completion(nil, failure)
                 return
             }
             
-            let endPoint: LikesEndpoints = .likeMedia(token: token, id: mediaId)
-            
-            self?.performRequest(to: endPoint, completion: { (success: APISuccessResponse<LikeResponse>?, failure: APIFailureResponse?) in
-                guard let success, failure == nil else {
-                    completion(nil, failure)
-                    return
-                }
-                
-                completion(success, nil)
-            })
-        }
+            completion(success, nil)
+        })
     }
     
     /// Unlikes the media
     func unlike(_ mediaId: Int, completion: @escaping unlikeCompletion) -> Void {
-        AuthManager.shared.getAccessToken { [weak self] token, failure in
-            guard let token, failure == nil else {
-                print("Failed to acquire token.\nFailure:\(String(describing: failure))")
+        let endPoint: LikesEndpoints = .unlikeMedia(id: mediaId)
+        
+        self.performRequest(to: endPoint, completion: { (success: APISuccessResponse<EmptyResponse>?, failure: APIFailureResponse?) in
+            guard let success, failure == nil else {
                 completion(nil, failure)
                 return
             }
             
-            let endPoint: LikesEndpoints = .unlikeMedia(token: token, id: mediaId)
-            
-            self?.performRequest(to: endPoint, completion: { (success: APISuccessResponse<EmptyResponse>?, failure: APIFailureResponse?) in
-                guard let success, failure == nil else {
-                    completion(nil, failure)
-                    return
-                }
-                
-                completion(success, nil)
-            })
-        }
+            completion(success, nil)
+        })
     }
     
 }

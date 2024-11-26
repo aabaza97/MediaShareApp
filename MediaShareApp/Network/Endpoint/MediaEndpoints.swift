@@ -1,10 +1,10 @@
 import Foundation
 
 enum MediaEndpoints {
-    case uploadImage(token: String, file: MultipartFile)
-    case uploadMovie(token: String, file: MultipartFile)
-    case getMedia(token: String, page: Int)
-    case delete(token: String, id: Int)
+    case uploadImage(file: MultipartFile)
+    case uploadMovie(file: MultipartFile)
+    case getMedia(page: Int)
+    case delete(id: Int)
 }
 
 
@@ -32,22 +32,14 @@ extension MediaEndpoints: Endpoint {
     
     var task: HTTPTask {
         switch self {
-        case .uploadImage(_, let file), .uploadMovie(_, let file): return .multipart(info: nil, fileData: file)
-        case .getMedia(_, let page): return .withParams(urlParams: ["page": page], bodyParams: nil)
-        case .delete(_, let id): return .withParams(urlParams: ["id": id], bodyParams: nil)
+        case .uploadImage(let file), .uploadMovie(let file): return .multipart(info: nil, fileData: file)
+        case .getMedia(let page): return .withParams(urlParams: ["page": page], bodyParams: nil)
+        case .delete(let id): return .withParams(urlParams: ["id": id], bodyParams: nil)
         }
     }
     
     var header: HTTPHeaders? {
-        var defaults = self.defaultHeaders
-        switch self{
-        case .uploadImage(let token, _),
-                .uploadMovie(let token, _),
-                .getMedia(let token, _),
-                .delete(let token, _):
-            defaults["Authorization"] = "Bearer \(token)"
-        }
-        return defaults
+        return self.defaultHeaders
     }
     
     var params: Parameters? {

@@ -20,72 +20,48 @@ final class MediaManager: NetworkManager {
     //MARK: - Functions
     /// Uploads the media to the server
     func upload(_ type: UTType, _ file: MultipartFile, completion: @escaping uploadCompletion) -> Void {
-        AuthManager.shared.getAccessToken { [weak self] token, failure in
-            guard let token, failure == nil else {
-                print("Failed to acquire token.\nFailure:\(String(describing: failure))")
+        let endPoint: MediaEndpoints = if type == .image {
+            .uploadImage(file: file)
+        } else {
+            .uploadMovie(file: file)
+        }
+        
+        self.performRequest(to: endPoint, completion: { (sucess: APISuccessResponse<UploadMediaResponse>?, failure: APIFailureResponse?) in
+            guard let sucess, failure == nil else {
                 completion(nil, failure)
                 return
             }
             
-            let endPoint: MediaEndpoints = if type == .image {
-                .uploadImage(token: token, file: file)
-            } else {
-                .uploadMovie(token: token, file: file)
-            }
-            
-            self?.performRequest(to: endPoint, completion: { (sucess: APISuccessResponse<UploadMediaResponse>?, failure: APIFailureResponse?) in
-                guard let sucess, failure == nil else {
-                    completion(nil, failure)
-                    return
-                }
-                
-                completion(sucess, nil)
-            })
-        }
+            completion(sucess, nil)
+        })
     }
     
     /// Fetches the media uploaded by the user
     func getMyUploadedMedia(in page: Int = 0, completion: @escaping getMyUploadedMediaCompletion) -> Void {
-        AuthManager.shared.getAccessToken { [weak self] token, failure in
-            guard let token, failure == nil else {
-                print("Failed to acquire token.\nFailure:\(String(describing: failure))")
+        let endPoint: MediaEndpoints = .getMedia(page: page)
+        
+        self.performRequest(to: endPoint, completion: { (sucess: APISuccessResponse<GetUserMediaResponse>?, failure: APIFailureResponse?) in
+            guard let sucess, failure == nil else {
                 completion(nil, failure)
                 return
             }
             
-            let endPoint: MediaEndpoints = .getMedia(token: token, page: page)
-            
-            self?.performRequest(to: endPoint, completion: { (sucess: APISuccessResponse<GetUserMediaResponse>?, failure: APIFailureResponse?) in
-                guard let sucess, failure == nil else {
-                    completion(nil, failure)
-                    return
-                }
-                
-                completion(sucess, nil)
-            })
-        }
+            completion(sucess, nil)
+        })
     }
     
     /// Deletes the media from the server
     func deleteMedia(_ id: Int, completion: @escaping deleteCompletion) -> Void {
-        AuthManager.shared.getAccessToken { [weak self] token, failure in
-            guard let token, failure == nil else {
-                print("Failed to acquire token.\nFailure:\(String(describing: failure))")
+        let endPoint: MediaEndpoints = .delete(id: id)
+        
+        self.performRequest(to: endPoint, completion: { (sucess: APISuccessResponse<DeleteMediaResponse>?, failure: APIFailureResponse?) in
+            guard let sucess, failure == nil else {
                 completion(nil, failure)
                 return
             }
             
-            let endPoint: MediaEndpoints = .delete(token: token, id: id)
-            
-            self?.performRequest(to: endPoint, completion: { (sucess: APISuccessResponse<DeleteMediaResponse>?, failure: APIFailureResponse?) in
-                guard let sucess, failure == nil else {
-                    completion(nil, failure)
-                    return
-                }
-                
-                completion(sucess, nil)
-            })
-        }
+            completion(sucess, nil)
+        })
     }
     
 }

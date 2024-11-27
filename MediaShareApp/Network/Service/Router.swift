@@ -11,13 +11,19 @@ protocol NetworkRouter: AnyObject {
 
 class Router<EndPoint: Endpoint>: NetworkRouter {
     // MARK: - Properties
+    private let api: API
     private let authProvider: AuthProvider?
     private let session: URLSession
     private var task: URLSessionTask?
     
     
     // MARK: - Inits
-    init(authProvider: AuthProvider, session: URLSession = .shared) {
+    init(
+        api: API,
+        authProvider: AuthProvider? = nil,
+        session: URLSession = .shared
+    ) {
+        self.api = api
         self.authProvider = authProvider
         self.session = session
     }
@@ -37,6 +43,14 @@ class Router<EndPoint: Endpoint>: NetworkRouter {
     /// Performs a network request with authentication
     private
     func performAuthenticatedRequest(_ route: EndPoint, completion: @escaping NetworkRouterCompletion) {
+        // Unless the token is valid, refresh it
+        guard let hasValidToken = self.authProvider?.hasValidToken, hasValidToken else {
+            let token = self.authProvider?.refreshToken
+            self.performRequest(route, with: token, completion: completion)
+            return
+        }
+        
+        // Get the token from the auth provider if it's valid
         self.authProvider?.getAccessToken() { [weak self] token, error in
             guard let token, error == nil else {
                 completion(nil, nil, NetworkError.authenticationError)
@@ -46,7 +60,6 @@ class Router<EndPoint: Endpoint>: NetworkRouter {
             self?.performRequest(route, with: token, completion: completion)
         }
     }
-    
     
     /// Performs a network request
     private
@@ -81,7 +94,7 @@ class Router<EndPoint: Endpoint>: NetworkRouter {
     /// Builds the request from the route and token
     private
     func buildRequest(from route: EndPoint, authenticatedWith token: String?) throws -> URLRequest {
-        var request = try self.buildRequest(from: route, with: APIManager.shared.baseURL)
+        var request = try self.buildRequest(from: route, with: self.api.baseURL)
         
         // If the route is protected, add the token to the header
         if let token {
@@ -106,8 +119,6 @@ class Router<EndPoint: Endpoint>: NetworkRouter {
         route.header?.forEach({ key, value in
             request.setValue(value, forHTTPHeaderField: key)
         })
-        
-        // TODO: Handle token authroization header here....
         
         switch route.task {
             

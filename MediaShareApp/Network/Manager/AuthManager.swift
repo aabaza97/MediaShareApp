@@ -14,6 +14,11 @@ final class AuthManager: AuthProvider {
         }
     }
     
+    var hasValidToken: Bool {
+        // Check if the difference between the current time and the last token refresh is greater than the ttl
+        return !(Date.now.timeIntervalSince1970 - lastTokenRefresh.timeIntervalSince1970 > ttl)
+    }
+    
     // MARK: - Inits
     static let shared = AuthManager()
     
@@ -112,13 +117,7 @@ final class AuthManager: AuthProvider {
     
     
     func refreshAccessToken(completion: @escaping TokenCompletion) -> Void {
-        guard let token = UserDefaults.standard.string(forKey: "refresh_token") else {
-            print("No token found")
-            completion(nil, APIFailureResponse(error: .init(message: "No token found")))
-            return
-        }
-        
-        self.performRequest(to: AuthEndpoints.refreshAccessToken(refreshToken: token)) { [weak self] (success: APISuccessResponse<RefreshAccessTokenResponse>?, failure) in
+       self.performRequest(to: AuthEndpoints.refreshAccessToken) { [weak self] (success: APISuccessResponse<RefreshAccessTokenResponse>?, failure) in
             guard let data = success?.data, failure == nil else {
                 print("failed to refresh!!!")
                 print(failure!)

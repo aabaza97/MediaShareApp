@@ -8,7 +8,7 @@ enum AuthEndpoints {
     case forgotPassword
     case verifyOTPToResetPassword
     case resetPassword
-    case refreshAccessToken(refreshToken: String)
+    case refreshAccessToken
 }
 
 extension AuthEndpoints: Endpoint {
@@ -60,11 +60,7 @@ extension AuthEndpoints: Endpoint {
 
     var task: HTTPTask {
         switch self {
-        case .sendEmailVerification(let body):
-            return .withParams(urlParams: nil, bodyParams: body.dictionary)
-        case .register(let body):
-            return .withParams(urlParams: nil, bodyParams: body.dictionary)
-        case .login(let body):
+        case .sendEmailVerification(let body), .register(let body), .login(let body):
             return .withParams(urlParams: nil, bodyParams: body.dictionary)
         case  .logout, .forgotPassword, .verifyOTPToResetPassword, .resetPassword, .refreshAccessToken:
             return .plain
@@ -72,15 +68,7 @@ extension AuthEndpoints: Endpoint {
     }
 
     var header: HTTPHeaders? {
-        var defaults = self.defaultHeaders
-        
-        switch self {
-        case .logout(let token), .refreshAccessToken(let token):
-            defaults["Authorization"] = "Bearer \(token)"
-            return defaults
-        default:
-            return defaults
-        }
+        return self.defaultHeaders
     }
 
     var params: Parameters? {

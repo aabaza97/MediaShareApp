@@ -13,9 +13,20 @@ protocol AuthProvider: NetworkManager {
     typealias OptionalCodable = (any Codable)?
     
     //MARK: - Properties
+    /// The last time the token was refreshed
     var lastTokenRefresh: Date { get }
+    
+    /// The access token currently in use
     var accessToken: String { get }
+    
+    /// The refresh token
+    var refreshToken: String { get }
+    
+    /// The access token time to live
     var ttl: Double { get }
+    
+    /// The state of the access token validity
+    var hasValidToken: Bool { get }
     
     //MARK: - Functions
     
@@ -47,5 +58,5 @@ protocol AuthProvider: NetworkManager {
 
 //MARK: - Default Implementation
 extension AuthProvider {
-    var router: any NetworkRouter { Router<AuthEndpoints>(authProvider: AuthManager.shared) }
+    var router: any NetworkRouter { Router<AuthEndpoints>(api: APIManager.shared, authProvider: AuthManager.shared) }
 }

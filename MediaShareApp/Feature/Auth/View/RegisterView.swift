@@ -9,7 +9,7 @@ struct RegisterView: View {
             VStack {
                 Image(.face)
                 Spacer()
-                Text("Welcome to App ")
+                Text("Welcome to App")
                     .frame(maxWidth: .infinity, alignment: .center)
                     .font(.largeTitle)
                     .fontWeight(.heavy)
@@ -43,7 +43,8 @@ struct RegisterView: View {
                     placeholder: "Password"
                 )
                 
-                Button {
+                // Create Account
+                AppButton(text: "Create Account", isLoading: $auth.isLoading) {
                     print("did tap create account")
                     self.auth.verifyEmail { done in
                         if done {
@@ -52,43 +53,20 @@ struct RegisterView: View {
                             return
                         }
                         
-                        // display some error message here
+                        // - TODO: display some error message here
                     }
-                } label: {
-                    Text("Create Account")
-                        .frame(maxWidth: .infinity)
-                        .fontWeight(.bold)
-                        .padding()
-                        .background(Color.white)
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.black, lineWidth: 3)
-                        )
                 }
-                .foregroundStyle(.black)
-                .padding(.vertical)
                 
-                
+                // Separtor
                 Image(.or)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical)
                 
-                
-                Button {
-                    // Action
-                    print("Hello")
-                } label: {
-                    Text("Google")
-                        .frame(maxWidth: .infinity)
-                        .fontWeight(.bold)
-                        .padding()
-                        .background(Color.white)
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.black, lineWidth: 3)
-                        )
-                }.foregroundStyle(.black)
-                
+                // Google
+                AppButton(text: "Google", isLoading: $auth.isLoading) {
+                    print("did tap google create account")
+                    
+                }
                 
                 Spacer()
             }

@@ -6,6 +6,7 @@ class AuthVM: ObservableObject {
     @Published var email: String = ""
     @Published var password: String = ""
     @Published var otp: [String] = Array<String>(repeating: "", count: 6)
+    @Published var isLoading: Bool = false
     
     @AppStorage("isLoggedIn") var isLoggedIn = false
     
@@ -21,9 +22,11 @@ class AuthVM: ObservableObject {
         
         let body = LoginRequestBody(email: email, password: password)
         
-        
-        
+        self.isLoading = true
         AuthManager.shared.login(with: body) { (success: APISuccessResponse<LoginResponse>?, failure) in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.isLoading = false
+            }
             guard let data = success?.data, failure == nil else {
                 print("login failed")
                 return
@@ -44,7 +47,11 @@ class AuthVM: ObservableObject {
         }
         
         let body = SendVerificationRequestBody(email: email, password: password, first_name: fname, last_name: lname)
+        
+        self.isLoading = true
         AuthManager.shared.sendEmailVerification(with: body) { (success: APISuccessResponse<SendEmailVerificationResponse>?, failure) in
+            
+            self.isLoading = false
             guard success != nil, failure == nil else {
                 print("verify email failed")
                 return
@@ -63,7 +70,10 @@ class AuthVM: ObservableObject {
         }
         
         let body = RegisterRequestBody(email: email, otp: otp.joined())
+        
+        self.isLoading = true
         AuthManager.shared.register(with: body) { (success: APISuccessResponse<RegisterResponse>?, failure) in
+            self.isLoading = false
             guard let data = success?.data, failure == nil else {
                 print("registration failed")
                 return
@@ -78,7 +88,9 @@ class AuthVM: ObservableObject {
     }
     
     func logout() {
+        self.isLoading = true
         AuthManager.shared.logout { (success: APISuccessResponse<LogoutResponse>?, failure) in
+            self.isLoading = false
             guard success != nil, failure == nil else {
                 return
             }

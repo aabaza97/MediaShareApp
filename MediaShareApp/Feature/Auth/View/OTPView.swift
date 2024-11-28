@@ -15,7 +15,6 @@ struct OTPView: View {
                 
                 Text("Verify It's You")
                     .font(.largeTitle)
-                    .padding()
                     .fontWeight(.bold)
                 Text("We've sent you an OTP code to your email. \n\(AuthVM.shared.email)")
                     .padding(.vertical, 30)
@@ -27,27 +26,16 @@ struct OTPView: View {
                     }
                 }
                 .frame(height: 80)
-                .padding(.horizontal, 20)
+                
                 Spacer()
                 
-                
-                Button(action: {
-                    print(self.auth.otp)
-                    self.auth.register()
-                }) {
-                    Text("Verify")
-                        .font(.headline)
-                        .frame(minWidth: 0, maxWidth: .infinity)
-                        .foregroundColor(.black)
-                        .padding()
-                        .background(Color.white)
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.black, lineWidth: 3)
-                        )
+                AppButton(text: "Verify", isLoading: $auth.isLoading) {
+                        print(self.auth.otp)
+                        self.auth.register()
                 }
-                .padding()
+                
             }
+            .padding()
         }
         .onAppear {
             self.focusField = .zero

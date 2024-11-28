@@ -24,22 +24,10 @@ struct LoginView: View {
             // Password
             AppSecureField(text: $auth.password, placeholder: "Password")
             
-            Button {
+            AppButton(text: "Log In", isLoading: $auth.isLoading) {
                 print("did tap login")
                 self.auth.login()
-            } label: {
-                Text("Log In")
-                    .frame(maxWidth: .infinity)
-                    .fontWeight(.bold)
-                    .padding()
-                    .background(Color.white)
-                    .overlay(
-                        Rectangle()
-                            .stroke(Color.black, lineWidth: 3)
-                    )
             }
-            .foregroundStyle(.black)
-            .padding(.vertical, 16.0)
             
             
             Image(.or)
@@ -47,22 +35,9 @@ struct LoginView: View {
                 .padding(.vertical, 32.0)
             
             
-            Button {
-                // Action
-                print("did tap google")
-            } label: {
-                Text("Google")
-                    .frame(maxWidth: .infinity)
-                    .fontWeight(.bold)
-                    .padding()
-                    .background(Color.white)
-                    .overlay(
-                        Rectangle()
-                            .stroke(Color.black, lineWidth: 3)
-                    )
-            }.foregroundStyle(.black)
-            
-            
+            AppButton(text: "Google", isLoading: $auth.isLoading) {
+                print("did tap google log in")
+            }
             Spacer()
         }.padding()
     }
